@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
-import { FloatingDock } from '@/components/ui/floating-dock'
-import { IconHome, IconCalendar, IconChartBar, IconSettings } from '@tabler/icons-react'
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -9,29 +7,6 @@ function App() {
   const iconRef = useRef(null)
   const habitTextRef = useRef(null)
   const trackerTextRef = useRef(null)
-
-  const navigationItems = [
-    {
-      title: "Home",
-      href: "/",
-      icon: <IconHome className="text-primary h-4 w-4" />
-    },
-    {
-      title: "Calendar",
-      href: "/calendar",
-      icon: <IconCalendar className="text-primary h-4 w-4" />
-    },
-    {
-      title: "Statistics",
-      href: "/stats",
-      icon: <IconChartBar className="text-primary h-4 w-4" />
-    },
-    {
-      title: "Settings",
-      href: "/settings",
-      icon: <IconSettings className="text-primary h-4 w-4" />
-    }
-  ];
 
   useEffect(() => {
     // Initial loading animation
@@ -159,13 +134,6 @@ function App() {
           <span ref={trackerTextRef} className="text-primary -translate-x-[2rem] font-['Luckiest_Guy']">Tracker</span>
         </div>
       </div>
-
-      {/* Floating Navigation Dock */}
-      <FloatingDock 
-        items={navigationItems}
-        desktopClassName="fixed bottom-8 left-1/2 -translate-x-1/2 z-50"
-        mobileClassName="fixed bottom-4 right-4 z-50" 
-      />
     </div>
   )
 }
