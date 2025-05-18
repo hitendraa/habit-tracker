@@ -1,6 +1,12 @@
+/**
+ * Note: Use position fixed according to your needs
+ * Desktop navbar is better positioned at the bottom
+ * Mobile navbar is better positioned at bottom right.
+ **/
+
 import { cn } from "@/lib/utils";
 import { IconLayoutNavbarCollapse } from "@tabler/icons-react";
-import { AnimatePresence, useMotionValue, useSpring, useTransform } from "motion/react";
+import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from "motion/react";
 
 import { useRef, useState } from "react";
 
@@ -75,7 +81,7 @@ const FloatingDockDesktop = ({
       onMouseMove={(e) => mouseX.set(e.pageX)}
       onMouseLeave={() => mouseX.set(Infinity)}
       className={cn(
-        "mx-auto hidden h-16 items-end gap-4 rounded-2xl bg-gray-50 px-4 pb-3 md:flex dark:bg-neutral-900",
+        "mx-auto hidden h-24 items-end gap-4 rounded-3xl bg-gray-50 px-6 pb-4 md:flex dark:bg-neutral-900",
         className
       )}>
       {items.map((item) => (
@@ -98,12 +104,11 @@ function IconContainer({
 
     return val - bounds.x - bounds.width / 2;
   });
+  let widthTransform = useTransform(distance, [-150, 0, 150], [60, 100, 60]);
+  let heightTransform = useTransform(distance, [-150, 0, 150], [60, 100, 60]);
 
-  let widthTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
-  let heightTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
-
-  let widthTransformIcon = useTransform(distance, [-150, 0, 150], [20, 40, 20]);
-  let heightTransformIcon = useTransform(distance, [-150, 0, 150], [20, 40, 20]);
+  let widthTransformIcon = useTransform(distance, [-150, 0, 150], [30, 50, 30]);
+  let heightTransformIcon = useTransform(distance, [-150, 0, 150], [30, 50, 30]);
 
   let width = useSpring(widthTransform, {
     mass: 0.1,

@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
+import { FloatingDock } from './components/accertinity/floating-dock'
+import { 
+  IconHome,
+  IconCalendar,
+  IconChartBar,
+  IconSettings,
+  IconPlus
+} from '@tabler/icons-react'
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -7,6 +15,34 @@ function App() {
   const iconRef = useRef(null)
   const habitTextRef = useRef(null)
   const trackerTextRef = useRef(null)
+
+  const navigationItems = [
+    {
+      title: 'Home',
+      icon: <IconHome className="w-12 h-12" />,
+      href: '/'
+    },
+    {
+      title: 'Calendar',
+      icon: <IconCalendar className="w-12 h-12" />,
+      href: '/calendar'
+    },
+    {
+      title: 'Add Habit',
+      icon: <IconPlus className="w-12 h-12" />,
+      href: '/add'
+    },
+    {
+      title: 'Statistics',
+      icon: <IconChartBar className="w-12 h-12" />,
+      href: '/stats'
+    },
+    {
+      title: 'Settings',
+      icon: <IconSettings className="w-12 h-12" />,
+      href: '/settings'
+    }
+  ]
 
   useEffect(() => {
     // Initial loading animation
@@ -134,6 +170,15 @@ function App() {
           <span ref={trackerTextRef} className="text-primary -translate-x-[2rem] font-['Luckiest_Guy']">Tracker</span>
         </div>
       </div>
+      
+      {/* Navigation Dock */}
+      {!loading && (
+        <FloatingDock 
+          items={navigationItems} 
+          desktopClassName="fixed bottom-4 left-1/2 -translate-x-1/2" 
+          mobileClassName="fixed bottom-4 right-4"
+        />
+      )}
     </div>
   )
 }
