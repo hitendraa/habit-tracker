@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { motion } from 'framer-motion'
+import { useIsMobile } from './hooks/use-mobile'
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -28,6 +29,7 @@ import { AppIntegrations } from './components/dashboard/AppIntegrations'
 import { HabitProvider } from './lib/habit-context'
 import { AchievementProvider } from './lib/achievement-context'
 import { format } from 'date-fns'
+import MobileOverlay from './components/custom/mobile-overlay';
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -35,6 +37,7 @@ function App() {
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [statsOpen, setStatsOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const isMobile = useIsMobile()
   const appRef = useRef(null)
   const iconRef = useRef(null)
   const habitTextRef = useRef(null)
@@ -316,6 +319,9 @@ function App() {
     <HabitProvider>
       <AchievementProvider>
         <div ref={appRef} className={`bg-background w-full h-[200vh] text-primary font-sans ${loading ? 'overflow-hidden' : ''}`}>
+          {/* Mobile Overlay */}
+          {isMobile && <MobileOverlay />}
+          
           {/* Main Title Group */}
           <div className="fixed w-full text-center pointer-events-none z-50" style={{ top: '50%', transform: 'translateY(-50%)' }}>
             <div className="relative flex items-center justify-center">
