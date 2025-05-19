@@ -39,7 +39,6 @@ export function WeatherWidget() {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [usingGPS, setUsingGPS] = useState(false);
-
   const fetchWeather = async (forceRefresh = false) => {
     if (forceRefresh) {
       setIsRefreshing(true);
@@ -55,10 +54,35 @@ export function WeatherWidget() {
         setUsingGPS(!!locationData);
       }
 
-      // Fall back to IP-based location if GPS failed
+      // Fall back to IP-based location if GPS failed or was denied
       if (!locationData) {
-        const geoResponse = await fetch('http://ip-api.com/json/');
-        locationData = await geoResponse.json();
+        try {
+          const geoResponse = await fetch('https://ipapi.co/json/');
+          const ipData = await geoResponse.json();
+          
+          if (ipData && ipData.latitude && ipData.longitude) {
+            locationData = {
+              lat: ipData.latitude,
+              lon: ipData.longitude,
+              city: ipData.city || 'Your Location'
+            };
+          } else {
+            // Fallback to a default location if IP geolocation fails
+            locationData = {
+              lat: 40.7128, // New York
+              lon: -74.0060,
+              city: 'Default Location'
+            };
+          }
+        } catch (ipError) {
+          console.error('IP geolocation failed:', ipError);
+          // Use default location as last resort
+          locationData = {
+            lat: 40.7128, // New York
+            lon: -74.0060,
+            city: 'Default Location'
+          };
+        }
       }
 
       // Get weather data
@@ -76,22 +100,50 @@ export function WeatherWidget() {
         code: weatherData.current.weather_code
       });
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching weather data:', error);
+      // Show fallback weather data to prevent app from breaking
+      setWeather({
+        city: 'Unavailable',
+        temp: 20,
+        humidity: 50,
+        windSpeed: 5,
+        pressure: 1013,
+        code: 0 // Clear sky as fallback
+      });
     } finally {
       setLoading(false);
       setIsRefreshing(false);
     }
-  };
-
-  const getLocationData = async () => {
+  };  const getLocationData = async () => {
     if (navigator.geolocation) {
       try {
         const position = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0
-          });
+          navigator.geolocation.getCurrentPosition(
+            resolve, 
+            (error) => {
+              // Handle specific geolocation errors
+              switch(error.code) {
+                case error.PERMISSION_DENIED:
+                  console.log("User denied the request for geolocation");
+                  break;
+                case error.POSITION_UNAVAILABLE:
+                  console.log("Location information is unavailable");
+                  break;
+                case error.TIMEOUT:
+                  console.log("The request to get user location timed out");
+                  break;
+                case error.UNKNOWN_ERROR:
+                  console.log("An unknown error occurred");
+                  break;
+              }
+              reject(error);
+            },
+            {
+              enableHighAccuracy: true,
+              timeout: 5000,
+              maximumAge: 0
+            }
+          );
         });
         
         const response = await fetch(
@@ -109,11 +161,12 @@ export function WeatherWidget() {
         return null;
       }
     }
+    console.log('Geolocation is not supported by this browser');
     return null;
   };
-
   useEffect(() => {
     fetchWeather();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) {

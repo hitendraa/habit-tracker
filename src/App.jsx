@@ -10,7 +10,8 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { motion } from 'framer-motion'
 
-gsap.registerPlugin(ScrollTrigger)
+gsap.registerPlugin(ScrollTrigger);
+
 import { FloatingDock } from './components/custom/floating-dock'
 import { Card } from './components/ui/card'
 import { IconHome, IconCalendar, IconChartBar, IconSettings, IconPlus } from '@tabler/icons-react'
@@ -47,9 +48,59 @@ function App() {
     return () => clearInterval(timer)
   }, [])
 
+  // Apply no-scroll class to body when loading
+  useEffect(() => {
+    if (loading) {
+      // Add no-scroll class to body when loading
+      document.body.classList.add('no-scroll');
+    } else {
+      // Remove no-scroll class when loading is complete
+      document.body.classList.remove('no-scroll');
+    }
+  }, [loading]);
+
+  // Add a style tag to the head for the no-scroll class and fix pointer-events
+  useEffect(() => {
+    // Create a style element
+    const styleElement = document.createElement('style');
+    styleElement.innerHTML = `
+      .no-scroll {
+        overflow: hidden !important;
+        height: 100% !important;
+      }
+      
+      /* Ensure elements within the main card are always clickable */
+      .main-card {
+        transform: translate3d(0, 0, 0);
+        backface-visibility: hidden;
+        perspective: 1000px;
+        will-change: transform;
+      }
+      
+      .main-card button, 
+      .main-card a, 
+      .main-card input, 
+      .main-card [role="button"],
+      .main-card [tabindex="0"] {
+        pointer-events: auto !important;
+        position: relative;
+        z-index: 70;
+      }
+    `;
+    // Add the style element to the head
+    document.head.appendChild(styleElement);
+
+    // Clean up when component unmounts
+    return () => {
+      document.head.removeChild(styleElement);
+    };
+  }, []);
+
   // Navigation items for the dock
   const handleNavClick = (action) => (e) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent event bubbling
+    
     switch(action) {
       case 'home':
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -109,6 +160,8 @@ function App() {
       const tl = gsap.timeline({
         onComplete: () => {
           setLoading(false);
+          // Enable scrolling when animation completes
+          document.body.classList.remove('no-scroll');
         }
       })
 
@@ -197,7 +250,7 @@ function App() {
         ease: "power3.inOut"
       }, "-=2")
       
-      tl      .to(trackerTextRef.current, {
+      tl.to(trackerTextRef.current, {
         translateX: "-3rem",  // Increased from -0.7rem
         duration: 2,
         ease: "power3.inOut"
@@ -237,10 +290,12 @@ function App() {
     // Card slide up animation
     gsap.fromTo(".main-card", 
       { 
-        yPercent: 0
+        yPercent: 0,
+        pointerEvents: "auto" // Changed to auto to ensure elements are clickable from the start
       },
       {
         yPercent: -20,
+        pointerEvents: "auto",
         ease: "power2.inOut",
         scrollTrigger: {
           trigger: appRef.current,
@@ -260,9 +315,9 @@ function App() {
   return (
     <HabitProvider>
       <AchievementProvider>
-        <div ref={appRef} className="bg-background w-full h-[200vh] text-primary font-sans">
+        <div ref={appRef} className={`bg-background w-full h-[200vh] text-primary font-sans ${loading ? 'overflow-hidden' : ''}`}>
           {/* Main Title Group */}
-          <div className="fixed w-full text-center z-50" style={{ top: '50%', transform: 'translateY(-50%)' }}>
+          <div className="fixed w-full text-center pointer-events-none z-50" style={{ top: '50%', transform: 'translateY(-50%)' }}>
             <div className="relative flex items-center justify-center">
               <span ref={habitTextRef} className="text-[180px] text-primary translate-x-[2rem] font-['Luckiest_Guy']">Habit</span>
               
@@ -287,15 +342,14 @@ function App() {
           <div 
             className={`fixed inset-0 transition-opacity duration-500 ${loading ? 'opacity-0' : 'opacity-100'}`}
             style={{ visibility: loading ? 'hidden' : 'visible' }}
+          >          <motion.div
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+            className="relative z-40"
+            style={{ marginTop: '20vh' }}
           >
-            <motion.div
-              initial={{ opacity: 0, y: 100 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-              className="relative"
-              style={{ marginTop: '20vh' }}
-            >
-              <Card className="main-card sticky top-[80vh] left-0 w-full min-h-screen bg-card/80 text-card-foreground shadow-lg border border-border/50 backdrop-blur-sm overflow-y-auto transition-all duration-300">
+            <Card className="main-card sticky top-[80vh] left-0 w-full min-h-screen bg-card/80 text-card-foreground shadow-lg border border-border/50 backdrop-blur-sm overflow-y-auto transition-all duration-300 z-[60]">
                 <div className="p-6">
                   {/* Main 4-Column Grid Layout */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -362,7 +416,7 @@ function App() {
             </motion.div>
             <FloatingDock 
               items={NAVIGATION_ITEMS} 
-              desktopClassName="fixed bottom-4 left-1/2 -translate-x-1/2 z-10" 
+              desktopClassName="fixed bottom-4 left-1/2 -translate-x-1/2 z-100" 
               mobileClassName="fixed bottom-4 right-4"
             />
           </div>
